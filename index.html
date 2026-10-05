@@ -355,27 +355,31 @@
 
   function nextQuestion() {
 
-    const textarea = document.getElementById("answer");
+  const textarea = document.getElementById("answer");
 
-    currentExperience.answers[currentStep] =
-      textarea.value.trim();
+  currentExperience.answers[currentStep] =
+    textarea.value.trim();
 
-    if (currentStep < prompts.length - 1) {
+  if (currentStep < prompts.length - 1) {
 
-      currentStep++;
+    currentStep++;
 
-      showQuestion();
+    showQuestion();
+
+  } else {
+
+    if (editingExperienceId) {
+
+      saveEditedExperience();
 
     } else {
 
-      if (editingExperienceID)  {
-        saveEditedExperience();
-      } else {
-        
       saveExperience();
 
     }
+
   }
+}
 
 
   function previousQuestion() {
