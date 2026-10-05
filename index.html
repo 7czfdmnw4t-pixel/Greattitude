@@ -194,6 +194,17 @@
       font-size: 13px;
     }
 
+    .delete-button {
+      background: #b33a3a;
+      colour: white;
+      border: none;
+    }
+
+    .delete-button:hover {
+      background: #922f2f;
+    }
+
+    
     @media (max-width: 400px) {
       h1 {
         font-size: 36px;
@@ -603,7 +614,7 @@
           Edit experience
         </button>
 
-        <button class="secondary" onclick="deleteExperience('${experience.id}')">
+        <button class="delete-button" onclick="deleteExperience('${experience.id}')">
           Delete experience
         </button>
         
