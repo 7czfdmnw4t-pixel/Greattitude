@@ -1,0 +1,10 @@
+{
+  "name": "Greattitude",
+  "short_name": "Greattitude",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f5f3ed",
+  "theme_color": "#f5f3ed",
+  "description": "Notice what's good. Remember how it felt.",
+  "icons": []
+}
