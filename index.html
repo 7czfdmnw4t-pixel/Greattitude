@@ -858,23 +858,20 @@ async function testNotification() {
     return;
   }
 
-  new Notification("Greattitude", {
+  if (!("serviceWorker" in navigator)) {
+    alert("Service workers are not supported.");
+    return;
+  }
+
+  const registration = 
+    await navigator.serviceWorker.ready;
+
+  await registration.showNotification("Greattitude", { 
     body: "Remember this? 🌅 This is a test notification.",
     tag: "greattitude-test"
   });
 }
 
-
-showHome();
-
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js")
-      .catch(error => {
-        console.log("Service worker registration failed:", error);
-      });
-  });
-}  
   showHome();
 
 if ("serviceWorker" in navigator) {
