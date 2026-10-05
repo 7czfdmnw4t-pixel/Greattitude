@@ -292,6 +292,10 @@
           Test notifications
           </button>
 
+          <button class="secondary" oneclick="enableNotifications()">
+          Enable notifications
+          </button>
+
         </div>
       </div>
     `;
@@ -901,7 +905,9 @@ async function testNotification() {
   
   showHome();
 
-
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register(".service-worker.js");
+}
   
 </script>
 
