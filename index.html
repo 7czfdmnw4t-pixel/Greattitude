@@ -238,6 +238,8 @@
   let experiences = loadExperiences();
   let currentExperience = {};
   let currentStep = 0;
+  let editingExperienceId = null;
+  
 
   const prompts = [
     "Tell me a recent positive experience (doesn't matter how small)",
@@ -299,6 +301,8 @@
 
   function startExperience() {
 
+    editingExperienceId = null;
+    
     currentExperience = {
       id: Date.now().toString(),
       date: new Date().toISOString(),
@@ -364,6 +368,10 @@
 
     } else {
 
+      if (editingExperienceID)  {
+        saveEditedExperience();
+      } else {
+        
       saveExperience();
 
     }
@@ -587,11 +595,132 @@
           Back to experiences
         </button>
 
+        <button class="secondary" onclick="editExperience('${experience.id}')">
+          Edit experience
+        </button>
+
+        <button class="secondary" onclick="deleteExperience('${experience.id}')">
+          Delete experience
+        </button>
+        
       </div>
     `;
   }
 
+// --------------------------------------------------
+// EDIT EXPERIENCE
+// --------------------------------------------------
 
+function editExperience(id) {
+
+  const experience =
+    experiences.find(item => item.id === id);
+
+  if (!experience) {
+    showExperienceList();
+    return;
+  }
+
+  editingExperienceId = id;
+
+  currentExperience = {
+    id: experience.id,
+    date: experience.date,
+    answers: [...experience.answers]
+  };
+
+  currentStep = 0;
+
+  showQuestion();
+}
+
+
+function saveEditedExperience() {
+
+  const index =
+    experiences.findIndex(
+      experience => experience.id === editingExperienceId
+    );
+
+  if (index !== -1) {
+
+    experiences[index] = {
+      id: currentExperience.id,
+      date: currentExperience.date,
+      answers: [...currentExperience.answers]
+    };
+
+    saveExperiences();
+  }
+
+  editingExperienceId = null;
+
+  showExperience(currentExperience.id);
+}    
+
+// --------------------------------------------------
+// DELETE EXPERIENCE
+// --------------------------------------------------
+
+function deleteExperience(id) {
+
+  const experience =
+    experiences.find(item => item.id === id);
+
+  if (!experience) {
+    showExperienceList();
+    return;
+  }
+
+  const confirmed =
+    confirm(
+      "Delete this experience?\n\nThis can't be undone."
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  const wasNextExperience =
+    localStorage.getItem(POINTER_KEY) === id;
+
+  experiences =
+    experiences.filter(
+      item => item.id !== id
+    );
+
+  saveExperiences();
+
+  /*
+   * If there are no experiences left,
+   * remove the retrieval pointer.
+   */
+
+  if (experiences.length === 0) {
+
+    localStorage.removeItem(POINTER_KEY);
+
+    showHome();
+    return;
+  }
+
+  /*
+   * If the deleted experience was the next
+   * one to be revisited, use the oldest
+   * remaining experience.
+   */
+
+  if (wasNextExperience) {
+
+    localStorage.setItem(
+      POINTER_KEY,
+      experiences[0].id
+    );
+  }
+
+  showExperienceList();
+}    
+    
   // --------------------------------------------------
   // REFLECTION / RETRIEVAL
   // --------------------------------------------------
