@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Greattitude">
 
   <title>Greattitude</title>
-  <link rel="manifest" href=".manifest.json">
+  <link rel="manifest" href="./manifest.json">
 
   <style>
     * {
@@ -288,11 +288,7 @@
             Revisit your experiences
           </button>
 
-          <button class="secondary" oneclick="alert('NEW VERSION IS RUNNING')">
-          Test notifications
-          </button>
-
-          <button class="secondary" oneclick="enableNotifications()">
+          <button class="secondary" onclick="enableNotifications()">
           Enable notifications
           </button>
 
@@ -848,48 +844,51 @@
 // START APP
 // --------------------------------------------------
 
-async function testNotification() {
+ 
+  showHome();
+
+
+  async function enableNotifications() {
 
   try {
 
-    alert("Step 1: Button works.");
-
     if (!("Notification" in window)) {
-      alert("Step 2: Notifications API is NOT available.");
-      return;
-    }
-
-    alert("Step 2: Notifications API is available.");
-
-    const permission = await Notification.requestPermission();
-
-    alert("Step 3: Permission = " + permission);
-
-    if (permission !== "granted") {
+      alert("Notifications API is not available.");
       return;
     }
 
     if (!("serviceWorker" in navigator)) {
-      alert("Step 4: Service Worker API is NOT available.");
+      alert("Service Workers are not available.");
       return;
     }
 
-    alert("Step 4: Service Worker API is available.");
+    const permission = await Notification.requestPermission();
+
+    if (permission !== "granted") {
+      alert("Notification permission: " + permission);
+      return;
+    }
 
     const registration =
       await navigator.serviceWorker.ready;
 
-    alert("Step 5: Service worker is ready.");
+    if (!("PushManager" in window)) {
+      alert("Push API is not available.");
+      return;
+    }
 
-    await registration.showNotification(
-      "Greattitude",
-      {
-        body: "Remember this? 🌅 This is a test.",
-        tag: "greattitude-test"
-      }
+    const subscription =
+      await registration.pushManager.subscribe({
+        userVisibleOnly: true
+      });
+
+    alert(
+      "SUCCESS!\n\n" +
+      "Notifications are enabled.\n\n" +
+      "A push subscription was created."
     );
 
-    alert("Step 6: Notification requested.");
+    console.log(subscription);
 
   } catch (error) {
 
@@ -903,10 +902,8 @@ async function testNotification() {
   }
 }
   
-  showHome();
-
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register(".service-worker.js");
+  if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./service-worker.js");
 }
   
 </script>
