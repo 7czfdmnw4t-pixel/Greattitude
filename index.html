@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f3ed">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Greattitude">
+
+  <title>Greattitude</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #f5f3ed;
+      color: #252525;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+    }
+
+    .app {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 24px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding-top: 30px;
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      font-size: 42px;
+      margin: 0 0 8px;
+      font-weight: 700;
+      letter-spacing: -1.5px;
+    }
+
+    .tagline {
+      margin: 0;
+      font-size: 17px;
+      color: #666;
+    }
+
+    .screen {
+      flex: 1;
+    }
+
+    .prompt {
+      font-size: 30px;
+      line-height: 1.2;
+      margin: 20px 0 28px;
+      letter-spacing: -0.5px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      resize: vertical;
+      border: 1px solid #d6d2c8;
+      border-radius: 14px;
+      padding: 18px;
+      font: inherit;
+      font-size: 18px;
+      line-height: 1.5;
+      background: white;
+      color: #252525;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: #777;
+    }
+
+    button {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 17px 20px;
+      margin-top: 14px;
+      font: inherit;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #252525;
+      color: white;
+    }
+
+    button.secondary {
+      background: transparent;
+      color: #252525;
+      border: 1px solid #c9c5bb;
+    }
+
+    button.back {
+      background: transparent;
+      color: #666;
+      padding: 10px;
+      margin-top: 8px;
+    }
+
+    .home-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 60px;
+    }
+
+    .home-buttons button {
+      padding: 20px;
+      font-size: 18px;
+    }
+
+    .experience-card {
+      background: white;
+      border: 1px solid #dedbd2;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 14px;
+      cursor: pointer;
+    }
+
+    .experience-date {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 9px;
+    }
+
+    .experience-text {
+      font-size: 17px;
+      line-height: 1.45;
+    }
+
+    .empty {
+      color: #777;
+      font-size: 17px;
+      line-height: 1.5;
+      margin-top: 40px;
+    }
+
+    .reflection {
+      background: white;
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 25px;
+    }
+
+    .reflection-label {
+      font-size: 13px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 10px;
+    }
+
+    .reflection-text {
+      font-size: 19px;
+      line-height: 1.5;
+    }
+
+    .progress {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 20px;
+    }
+
+    .saved-message {
+      text-align: center;
+      padding-top: 70px;
+    }
+
+    .saved-message h2 {
+      font-size: 30px;
+      margin-bottom: 12px;
+    }
+
+    .saved-message p {
+      color: #666;
+      font-size: 17px;
+    }
+
+    footer {
+      padding: 30px 0 10px;
+      text-align: center;
+      color: #aaa;
+      font-size: 13px;
+    }
+
+    @media (max-width: 400px) {
+      h1 {
+        font-size: 36px;
+      }
+
+      .prompt {
+        font-size: 27px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <header>
+    <h1>Greattitude</h1>
+    <p class="tagline">Notice what's good. Remember how it felt.</p>
+  </header>
+
+  <main class="screen" id="app"></main>
+
+  <footer>
+    Greattitude
+  </footer>
+
+</div>
+
+<script>
+
+  /*
+   * GREATtitude
+   * First working prototype
+   *
+   * Everything is stored locally in the browser.
+   */
+
+  const STORAGE_KEY = "greattitude_experiences";
+  const POINTER_KEY = "greattitude_next_experience";
+
+  let experiences = loadExperiences();
+  let currentExperience = {};
+  let currentStep = 0;
+
+  const prompts = [
+    "Tell me a recent positive experience (doesn't matter how small)",
+    "What made this a positive experience?",
+    "What would you say to someone else who had this experience?",
+    "What does this show you / what have you learnt from this?"
+  ];
+
+  const app = document.getElementById("app");
+
+
+  // --------------------------------------------------
+  // STORAGE
+  // --------------------------------------------------
+
+  function loadExperiences() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveExperiences() {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(experiences)
+    );
+  }
+
+
+  // --------------------------------------------------
+  // HOME
+  // --------------------------------------------------
+
+  function showHome() {
+
+    app.innerHTML = `
+      <div>
+        <div class="home-buttons">
+
+          <button onclick="startExperience()">
+            Enter a new experience
+          </button>
+
+          <button class="secondary" onclick="showExperienceList()">
+            Revisit your experiences
+          </button>
+
+        </div>
+      </div>
+    `;
+  }
+
+
+  // --------------------------------------------------
+  // NEW EXPERIENCE
+  // --------------------------------------------------
+
+  function startExperience() {
+
+    currentExperience = {
+      id: Date.now().toString(),
+      date: new Date().toISOString(),
+      answers: ["", "", "", ""]
+    };
+
+    currentStep = 0;
+
+    showQuestion();
+  }
+
+
+  function showQuestion() {
+
+    const answer = currentExperience.answers[currentStep] || "";
+
+    app.innerHTML = `
+
+      <div>
+
+        <div class="progress">
+          ${currentStep + 1} of ${prompts.length}
+        </div>
+
+        <div class="prompt">
+          ${prompts[currentStep]}
+        </div>
+
+        <textarea
+          id="answer"
+          placeholder="Write whatever comes to mind..."
+        >${escapeHtml(answer)}</textarea>
+
+        <button onclick="nextQuestion()">
+          ${currentStep === prompts.length - 1 ? "Save experience" : "Next"}
+        </button>
+
+        ${
+          currentStep > 0
+            ? `<button class="back" onclick="previousQuestion()">Back</button>`
+            : `<button class="back" onclick="showHome()">Cancel</button>`
+        }
+
+      </div>
+    `;
+
+    document.getElementById("answer").focus();
+  }
+
+
+  function nextQuestion() {
+
+    const textarea = document.getElementById("answer");
+
+    currentExperience.answers[currentStep] =
+      textarea.value.trim();
+
+    if (currentStep < prompts.length - 1) {
+
+      currentStep++;
+
+      showQuestion();
+
+    } else {
+
+      saveExperience();
+
+    }
+  }
+
+
+  function previousQuestion() {
+
+    const textarea = document.getElementById("answer");
+
+    currentExperience.answers[currentStep] =
+      textarea.value.trim();
+
+    currentStep--;
+
+    showQuestion();
+  }
+
+
+  // --------------------------------------------------
+  // SAVE EXPERIENCE
+  // --------------------------------------------------
+
+  function saveExperience() {
+
+    experiences.push(currentExperience);
+
+    /*
+     * Keep only the 10 most recent experiences.
+     */
+
+    if (experiences.length > 10) {
+      experiences =
+        experiences.slice(experiences.length - 10);
+    }
+
+    saveExperiences();
+
+    /*
+     * If this is the first experience, make it the
+     * next experience to revisit.
+     */
+
+    if (!localStorage.getItem(POINTER_KEY)) {
+
+      localStorage.setItem(
+        POINTER_KEY,
+        experiences[0].id
+      );
+
+    }
+
+    showSaved();
+  }
+
+
+  function showSaved() {
+
+    app.innerHTML = `
+
+      <div class="saved-message">
+
+        <h2>Experience saved.</h2>
+
+        <p>
+          You've added another piece of evidence
+          from your own life.
+        </p>
+
+        <button onclick="startExperience()">
+          Enter another experience
+        </button>
+
+        <button class="secondary" onclick="showHome()">
+          Home
+        </button>
+
+      </div>
+    `;
+  }
+
+
+  // --------------------------------------------------
+  // EXPERIENCE LIST
+  // --------------------------------------------------
+
+  function showExperienceList() {
+
+    if (experiences.length === 0) {
+
+      app.innerHTML = `
+
+        <div>
+
+          <div class="prompt">
+            Your experiences
+          </div>
+
+          <p class="empty">
+            You haven't recorded anything yet.
+            Start by entering one small thing
+            that was genuinely good.
+          </p>
+
+          <button onclick="startExperience()">
+            Enter a new experience
+          </button>
+
+          <button class="back" onclick="showHome()">
+            Home
+          </button>
+
+        </div>
+      `;
+
+      return;
+    }
+
+    /*
+     * Newest first for normal browsing.
+     */
+
+    const newestFirst =
+      [...experiences].reverse();
+
+    let cards = "";
+
+    newestFirst.forEach(experience => {
+
+      cards += `
+
+        <div
+          class="experience-card"
+          onclick="showExperience('${experience.id}')"
+        >
+
+          <div class="experience-date">
+            ${formatDate(experience.date)}
+          </div>
+
+          <div class="experience-text">
+            ${escapeHtml(experience.answers[0])}
+          </div>
+
+        </div>
+      `;
+    });
+
+    app.innerHTML = `
+
+      <div>
+
+        <div class="prompt">
+          Your experiences
+        </div>
+
+        ${cards}
+
+        <button class="back" onclick="showHome()">
+          Home
+        </button>
+
+      </div>
+    `;
+  }
+
+
+  // --------------------------------------------------
+  // VIEW ONE EXPERIENCE
+  // --------------------------------------------------
+
+  function showExperience(id) {
+
+    const experience =
+      experiences.find(item => item.id === id);
+
+    if (!experience) {
+      showExperienceList();
+      return;
+    }
+
+    app.innerHTML = `
+
+      <div>
+
+        <div class="progress">
+          ${formatDate(experience.date)}
+        </div>
+
+        <div class="reflection">
+
+          <div class="reflection-label">
+            The experience
+          </div>
+
+          <div class="reflection-text">
+            ${escapeHtml(experience.answers[0])}
+          </div>
+
+        </div>
+
+        <div class="reflection">
+
+          <div class="reflection-label">
+            Why it was good
+          </div>
+
+          <div class="reflection-text">
+            ${escapeHtml(experience.answers[1])}
+          </div>
+
+        </div>
+
+        <button onclick="startReflection('${experience.id}')">
+          Reflect on this
+        </button>
+
+        <button class="back" onclick="showExperienceList()">
+          Back to experiences
+        </button>
+
+      </div>
+    `;
+  }
+
+
+  // --------------------------------------------------
+  // REFLECTION / RETRIEVAL
+  // --------------------------------------------------
+
+  function startReflection(id) {
+
+    const experience =
+      experiences.find(item => item.id === id);
+
+    if (!experience) {
+      showExperienceList();
+      return;
+    }
+
+    /*
+     * Start at question 3.
+     */
+
+    showReflectionQuestion(experience, 2);
+  }
+
+
+  function showReflectionQuestion(experience, answerIndex) {
+
+    const labels = [
+      "The experience",
+      "Why it was good",
+      "What would you say to someone else?",
+      "What does this show you?"
+    ];
+
+    /*
+     * The final two answers are already stored.
+     * We display them as reflections rather than
+     * asking the user to enter them again.
+     */
+
+    if (answerIndex > 3) {
+
+      completeReflection(experience.id);
+
+      return;
+    }
+
+    app.innerHTML = `
+
+      <div>
+
+        <div class="progress">
+          Reflection
+        </div>
+
+        <div class="reflection">
+
+          <div class="reflection-label">
+            ${labels[0]}
+          </div>
+
+          <div class="reflection-text">
+            ${escapeHtml(experience.answers[0])}
+          </div>
+
+        </div>
+
+        <div class="reflection">
+
+          <div class="reflection-label">
+            Why it was good
+          </div>
+
+          <div class="reflection-text">
+            ${escapeHtml(experience.answers[1])}
+          </div>
+
+        </div>
+
+        <div class="reflection">
+
+          <div class="reflection-label">
+            ${labels[answerIndex]}
+          </div>
+
+          <div class="reflection-text">
+            ${escapeHtml(experience.answers[answerIndex])}
+          </div>
+
+        </div>
+
+        <button
+          onclick="showReflectionQuestion(
+            findExperience('${experience.id}'),
+            ${answerIndex + 1}
+          )"
+        >
+          Continue
+        </button>
+
+        <button class="back" onclick="showHome()">
+          Stop here
+        </button>
+
+      </div>
+    `;
+  }
+
+
+  function findExperience(id) {
+
+    return experiences.find(
+      experience => experience.id === id
+    );
+  }
+
+
+  function completeReflection(id) {
+
+    /*
+     * Retrieval pointer advances ONLY when the
+     * entire experience has been completed.
+     */
+
+    const index =
+      experiences.findIndex(
+        experience => experience.id === id
+      );
+
+    if (index !== -1) {
+
+      const nextIndex =
+        (index + 1) % experiences.length;
+
+      localStorage.setItem(
+        POINTER_KEY,
+        experiences[nextIndex].id
+      );
+    }
+
+    app.innerHTML = `
+
+      <div class="saved-message">
+
+        <h2>That's it.</h2>
+
+        <p>
+          You've revisited this experience.
+        </p>
+
+        <button onclick="showNextExperience()">
+          Next experience
+        </button>
+
+        <button class="secondary" onclick="showHome()">
+          Home
+        </button>
+
+      </div>
+    `;
+  }
+
+
+  function showNextExperience() {
+
+    if (experiences.length === 0) {
+      showHome();
+      return;
+    }
+
+    let nextId =
+      localStorage.getItem(POINTER_KEY);
+
+    let experience =
+      experiences.find(
+        item => item.id === nextId
+      );
+
+    /*
+     * If the stored experience disappeared because
+     * it rolled out of the 10-item window, use the
+     * oldest remaining experience.
+     */
+
+    if (!experience) {
+
+      experience = experiences[0];
+
+      localStorage.setItem(
+        POINTER_KEY,
+        experience.id
+      );
+    }
+
+    showExperience(experience.id);
+  }
+
+
+  // --------------------------------------------------
+  // HELPERS
+  // --------------------------------------------------
+
+  function formatDate(dateString) {
+
+    const date =
+      new Date(dateString);
+
+    return date.toLocaleDateString(
+      undefined,
+      {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      }
+    );
+  }
+
+
+  function escapeHtml(text) {
+
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+
+  // --------------------------------------------------
+  // START APP
+  // --------------------------------------------------
+
+  showHome();
+
+</script>
+
+</body>
+</html>
