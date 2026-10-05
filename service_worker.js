@@ -1,4 +1,4 @@
-const CACHE_NAME = "greattitude-v1";
+const CACHE_NAME = "greattitude-v2";
 
 const FILES_TO_CACHE = [
   "./",
