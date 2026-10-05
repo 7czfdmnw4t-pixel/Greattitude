@@ -9,6 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Greattitude">
 
   <title>Greattitude</title>
+  <link rel="manifest" href=".manifest.json">
 
   <style>
     * {
@@ -822,6 +823,15 @@
 
   showHome();
 
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register(".service-worker.js")
+    .catch(error => {
+      console.log("Service worker registration failed:", error);
+    });
+  });
+}
+  
 </script>
 
 </body>
