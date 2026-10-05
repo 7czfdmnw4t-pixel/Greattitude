@@ -288,6 +288,10 @@
             Revisit your experiences
           </button>
 
+          <button class="secondary" oneclick="testNotification()">
+          Test notifications
+          </button>
+
         </div>
       </div>
     `;
@@ -836,6 +840,41 @@
   // START APP
   // --------------------------------------------------
 
+  // --------------------------------------------------
+// START APP
+// --------------------------------------------------
+
+async function testNotification() {
+
+  if (!("Notification" in window)) {
+    alert("This browser does not support notifications.");
+    return;
+  }
+
+  const permission = await Notification.requestPermission();
+
+  if (permission !== "granted") {
+    alert("Notification permission was not granted.");
+    return;
+  }
+
+  new Notification("Greattitude", {
+    body: "Remember this? 🌅 This is a test notification.",
+    tag: "greattitude-test"
+  });
+}
+
+
+showHome();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js")
+      .catch(error => {
+        console.log("Service worker registration failed:", error);
+      });
+  });
+}  
   showHome();
 
 if ("serviceWorker" in navigator) {
