@@ -484,15 +484,17 @@
     }
 
     /*
-     * Newest first for normal browsing.
+     * Oldest first so each experience gets more
+     *time in the revisit cycle before it drops
+     *out of the rolling 10
      */
 
-    const newestFirst =
-      [...experiences].reverse();
+    const oldestFirst =
+      [...experiences];
 
     let cards = "";
 
-    newestFirst.forEach(experience => {
+    oldestFirst.forEach(experience => {
 
       cards += `
 
@@ -612,90 +614,103 @@
     showReflectionQuestion(experience, 2);
   }
 
-
   function showReflectionQuestion(experience, answerIndex) {
 
-    const labels = [
-      "The experience",
-      "Why it was good",
-      "What would you say to someone else?",
-      "What does this show you?"
-    ];
+  const labels = [
+    "The experience",
+    "Why was it good?",
+    "What would you say to someone else who had this experience?",
+    "What does this show you / what have you learnt from this?"
+  ];
 
-    /*
-     * The final two answers are already stored.
-     * We display them as reflections rather than
-     * asking the user to enter them again.
-     */
+  /*
+   * Build the reflection progressively.
+   *
+   * answerIndex 2 = show the first three answers
+   * answerIndex 3 = show all four answers
+   */
 
-    if (answerIndex > 3) {
+  let reflections = "";
 
-      completeReflection(experience.id);
+  for (let i = 0; i <= answerIndex; i++) {
 
-      return;
-    }
+    reflections += `
+
+      <div class="reflection">
+
+        <div class="reflection-label">
+          ${labels[i]}
+        </div>
+
+        <div class="reflection-text">
+          ${escapeHtml(experience.answers[i])}
+        </div>
+
+      </div>
+
+    `;
+  }
+
+  /*
+   * Once all four answers are visible, the
+   * experience is complete.
+   */
+
+  if (answerIndex === 3) {
 
     app.innerHTML = `
 
       <div>
 
         <div class="progress">
-          Reflection
+          Reflection complete
         </div>
 
-        <div class="reflection">
+        ${reflections}
 
-          <div class="reflection-label">
-            ${labels[0]}
-          </div>
-
-          <div class="reflection-text">
-            ${escapeHtml(experience.answers[0])}
-          </div>
-
-        </div>
-
-        <div class="reflection">
-
-          <div class="reflection-label">
-            Why it was good
-          </div>
-
-          <div class="reflection-text">
-            ${escapeHtml(experience.answers[1])}
-          </div>
-
-        </div>
-
-        <div class="reflection">
-
-          <div class="reflection-label">
-            ${labels[answerIndex]}
-          </div>
-
-          <div class="reflection-text">
-            ${escapeHtml(experience.answers[answerIndex])}
-          </div>
-
-        </div>
-
-        <button
-          onclick="showReflectionQuestion(
-            findExperience('${experience.id}'),
-            ${answerIndex + 1}
-          )"
-        >
-          Continue
+        <button onclick="completeReflection('${experience.id}')">
+          Next experience
         </button>
 
         <button class="back" onclick="showHome()">
-          Stop here
+          Home
         </button>
 
       </div>
+
     `;
+
+    return;
   }
 
+  app.innerHTML = `
+
+    <div>
+
+      <div class="progress">
+        Reflection
+      </div>
+
+      ${reflections}
+
+      <button
+        onclick="showReflectionQuestion(
+          findExperience('${experience.id}'),
+          ${answerIndex + 1}
+        )"
+      >
+        Continue
+      </button>
+
+      <button class="back" onclick="showHome()">
+        Stop here
+      </button>
+
+    </div>
+
+  `;
+}  
+  
 
   function findExperience(id) {
 
